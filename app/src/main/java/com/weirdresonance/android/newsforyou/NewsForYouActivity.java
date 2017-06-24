@@ -2,20 +2,17 @@ package com.weirdresonance.android.newsforyou;
 
 import android.app.LoaderManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,7 +20,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NewsForYouActivity extends AppCompatActivity {
+public class NewsForYouActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<News>>{
 
     private static final String LOG_TAG = NewsForYouActivity.class.getName();
 
@@ -31,7 +28,7 @@ public class NewsForYouActivity extends AppCompatActivity {
      * Test URL for Google Books API data
      */
     private static final String NEWS_REQUEST_URL =
-            "http://content.guardianapis.com/search?api-key=test&show-fields=thumbnail";
+            "http://content.guardianapis.com/search?q=debates&api-key=test";
             //"https://www.googleapis.com/books/v1/volumes?q=";
 
     /**
@@ -47,7 +44,7 @@ public class NewsForYouActivity extends AppCompatActivity {
     /**
      * Adapter for the list of books.
      */
-    private NewsAdapter newsAdapter;
+    //private NewsAdapter newsAdapter;
 
     /**
      * ListView that will contain the list of books.
@@ -61,9 +58,9 @@ public class NewsForYouActivity extends AppCompatActivity {
      */
     private static final int NEWS_LOADER_ID = 1;
 
-    private List<News> newsList = new ArrayList<>();
+    public static List<News> newsList = new ArrayList<>();
     private RecyclerView recyclerView;
-    private NewsAdapter mAdapter;
+    private NewsAdapter newsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,20 +73,14 @@ public class NewsForYouActivity extends AppCompatActivity {
 
 
 
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        mAdapter = new NewsAdapter(newsList);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(mAdapter);
 
         //prepareNewsData();
 
         callLoader(NEWS_REQUEST_URL);
     }
 
-/*    private void prepareNewsData() {
+   /* private void prepareNewsData() {
         News news = new News("Inside Out", "Animation, Kids & Family", "2015");
         newsList.add(news);
 
@@ -136,7 +127,7 @@ public class NewsForYouActivity extends AppCompatActivity {
         newsList.add(news);
 
 
-        mAdapter.notifyDataSetChanged();
+        newsAdapter.notifyDataSetChanged();
 
     }*/
 
@@ -152,18 +143,33 @@ public class NewsForYouActivity extends AppCompatActivity {
      */
     private void callLoader(String searchString) {
 
+
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        newsAdapter = new NewsAdapter(newsList);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(newsAdapter);
+
+
+
+
+
+
+
         // Restart the loader to clear it if a search has already been carried out
-        //getLoaderManager().restartLoader(NEWS_LOADER_ID, null, this);
+        getLoaderManager().restartLoader(NEWS_LOADER_ID, null, this);
 
         // Call FormatURL() to replace spaces with + and append the base URL to the search string
-        FormatURL(searchString);
+        //FormatURL(searchString);
 
         // Create a new adapter that takes an empty list of books as input
-        newsAdapter = new NewsAdapter(this, new ArrayList<News>());
+        //newsAdapter = new NewsAdapter(this, new ArrayList<News>());
 
         // Set the adapter on the {@link ListView}
         // so the list can be populated in the user interface
-        recyclerView.setAdapter(newsAdapter);
+        //recyclerView.setAdapter(newsAdapter);
 
         // Set an item click listener on the ListView, which sends an intent to a web browser
         // to open a website with more information about the selected earthquake.
@@ -191,7 +197,7 @@ public class NewsForYouActivity extends AppCompatActivity {
         // Get details on the currently active default data network.
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-        // Get the loadingindicator view and assing it to loadingIndicator.
+        // Get the loadingindicator view and assign it to loadingIndicator.
         View loadingIndicator = findViewById(R.id.loading_indicator);
 
         // If there is a network connection, fetch data
@@ -221,44 +227,56 @@ public class NewsForYouActivity extends AppCompatActivity {
 
 
 
-
+/*
     private String FormatURL(String searchString) {
         searchString = searchString.replace(" ", "+");
         searchString = NEWS_REQUEST_URL + searchString + getString(R.string.maxResults);
         return searchString;
-    }
+    }*/
 
     public Loader<List<News>> onCreateLoader(int i, Bundle bundle) {
         // Call FormatURL() and pass in the searchString entered in the searchbox.
         // This will add the base url and max results and pass it to the loader.
-        String searchUrl = FormatURL(searchString);
-        return new NewsLoader(this, searchUrl);
+        //String searchUrl = FormatURL(searchString);
+        return new NewsLoader(this, NEWS_REQUEST_URL);
     }
 
+
+
     @Override
-    public void onLoadFinished(Loader<List<News>> loader, List<News> books) {
+    public void onLoadFinished(Loader<List<News>> NewsLoader, List<News> newsList) {
 
         // Hide loading indicator because the data has been loaded
         View loadingIndicator = findViewById(R.id.loading_indicator);
         loadingIndicator.setVisibility(View.GONE);
 
-        // Set empty state text to display "No books found."
-        emptyNewsListView.setText(R.string.noBooksFound);
+        // Set empty state text to display "No news found."
+        //emptyNewsListView.setText(R.string.noNewsFound);
 
         // Clear the adapter of previous earthquake data
-        newsAdapter.clear();
+/*        newsAdapter.clear();
 
         // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
         // data set. This will trigger the ListView to update.
-        if (books != null && !books.isEmpty()) {
+        if (news != null && !books.isEmpty()) {
             newsAdapter.addAll(books);
+        }*/
+        //prepareNewsData();
+        if (newsList != null && !newsList.isEmpty()) {
+
+            //TODO Log output of getItemCount
+            float i = newsAdapter.getItemCount();
+            Log.d("Item Count", "Value: " + Float.toString(i));
+
+
+            newsAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
     public void onLoaderReset(Loader<List<News>> loader) {
         // Loader reset, so we can clear out our existing data.
-        newsAdapter.clear();
+        //newsAdapter.clear();
     }
 
 /*    @Override

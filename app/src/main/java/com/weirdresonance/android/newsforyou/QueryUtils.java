@@ -164,7 +164,9 @@ public final class QueryUtils {
 
             // Extract the JSONArray associated with the key called "items",
             // which represents a list of items relating to the book.
-            JSONArray newsItemArray = jsonObject.getJSONArray("items");
+
+            JSONObject response = jsonObject.getJSONObject("response");
+            JSONArray newsItemArray = response.getJSONArray("results");
 
             // For each book in the bookArray create a Book object
             for (int i = 0; i < newsItemArray.length(); i++) {
@@ -172,16 +174,18 @@ public final class QueryUtils {
                 // Get the book at position i.
                 JSONObject currentNewsItem = newsItemArray.getJSONObject(i);
 
+
+
                 // Extract the JSONObject associated with the key volumeInfo
-                JSONObject volumeInfo = currentNewsItem.getJSONObject("volumeInfo");
+                //JSONObject volumeInfo = currentNewsItem.getJSONObject("results");
 
                 // Check to see if volumeInfo contains the key "title".
-                if(volumeInfo.has("title")) {
+                if(currentNewsItem.has("webTitle")) {
                     // Extract the value for the title key
-                    title = "Title: " + volumeInfo.getString("title");
+                    title = currentNewsItem.getString("webTitle");
                 }
 
-                // Check to see if volumeInfo contains the key "author".
+/*                // Check to see if volumeInfo contains the key "author".
                 if(volumeInfo.has("author")) {
                     // Extract the value for the author key
                     author = "Author: " + volumeInfo.getString("author");
@@ -189,15 +193,15 @@ public final class QueryUtils {
                     // Trim the author string and remove [, ] and ".
                     author = author.replaceAll("[\\[\\]\"]", "");
                     author = author.replaceAll(",", ", ");
-                }
+                }*/
 
-                // Check to see if volumeInfo contains the key "infoLink".
+/*                // Check to see if volumeInfo contains the key "infoLink".
                 if(volumeInfo.has("infoLink")) {
                     // Extract the URL for the selected book key
                     newsUrl = volumeInfo.getString("infoLink");
-                }
+                }*/
 
-                // Check to see if volumeInfo contains the key "imageLinks"
+/*                // Check to see if volumeInfo contains the key "imageLinks"
                 if(volumeInfo.has("imageLinks")) {
                     // Extract the JSONObject associate with the key imageLinks
                     JSONObject imageLinks = volumeInfo.getJSONObject("imageLinks");
@@ -213,11 +217,11 @@ public final class QueryUtils {
                         Log.e("Error", e.getMessage());
                         e.printStackTrace();
                     }
-                }
+                }*/
 
-                // Create a new Book object with the author and title of the book
+                // Create a new News object with the author and title of the book
                 //News news = new News(thumbnailImage, title, author, newsUrl);
-                News news = new News("Inside Out", "Animation, Kids & Family", "2015");
+                News news = new News(title, "Animation, Kids & Family", "2015");
 
                 // Add the book to the list of books
                 newsList.add(news);
@@ -228,7 +232,7 @@ public final class QueryUtils {
             Log.e(LOG_TAG, "There was a problem parsing the result of the book JSON results", e);
         }
 
-        // Return the list of books
+        // Return the list of news
         return newsList;
     }
 
