@@ -10,7 +10,7 @@
 
 
     <string name="near_the">Near the</string>
-    <string name="no_news">No ENews found.</string>
+    <string name="no_news">No News found.</string>
     <string name="no_internet_connection">No internet connection.</string>
 
     <!-- Settings Menu Item [CHAR LIMIT=NONE] -->
@@ -18,24 +18,18 @@
     <!-- Settings Activity Title [CHAR LIMIT=NONE] -->
     <string name="settings_title">News Settings</string>
 
-    <!-- Strings For Minimum Magnitude Preference [CHAR LIMIT=30] -->
-    <string name="settings_min_magnitude_label">Minimum Magnitude</string>
-    <string name="settings_min_magnitude_key" translatable="false">min_magnitude</string>
-    <string name="settings_min_magnitude_default" translatable="false">6</string>
-
-
     <!-- Strings For Order-By Preference [CHAR LIMIT=30] -->
-    <string name="settings_order_by_label">Order By</string>
-    <string name="settings_order_by_key" translatable="false">order_by</string>
-    <string name="settings_order_by_default" translatable="false">@string/settings_order_by_magnitude_value</string>
+    <string name="settings_news_section">News Section</string>
+    <string name="settings_news_section_key" translatable="false">news_section</string>
+    <string name="settings_news_section_default" translatable="false">@string/settings_news_section_politics_value</string>
 
     <!-- Label for order-by magnitude option [CHAR LIMIT=20] -->
-    <string name="settings_order_by_magnitude_label">Magnitude</string>
-    <string name="settings_order_by_magnitude_value" translatable="false">magnitude</string>
+    <string name="settings_news_section_politics_label">Politics</string>
+    <string name="settings_news_section_politics_value" translatable="false">politics</string>
 
     <!-- Label for order-by most recent option [CHAR LIMIT=20] -->
-    <string name="settings_order_by_most_recent_label">Most Recent</string>
-    <string name="settings_order_by_most_recent_value" translatable="false">time</string>
+    <string name="settings_news_section_music_label">Music</string>
+    <string name="settings_news_section_music_value" translatable="false">music</string>
 
 
 

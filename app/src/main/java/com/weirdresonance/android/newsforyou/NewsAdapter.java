@@ -1,5 +1,6 @@
 package com.weirdresonance.android.newsforyou;
 
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,14 +21,16 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.MyViewHolder> 
     public class MyViewHolder extends RecyclerView.ViewHolder {
 
         public ImageView newsImage;
-        public TextView newsTitle, newsAuthor, newsUrl;
+        public TextView newsTitle, newsSection, newsPublishedDate;
+        public Uri newsUrl;
 
 
         public MyViewHolder(View view) {
             super(view);
             newsImage = (ImageView) view.findViewById(R.id.newsImageView);
             newsTitle = (TextView) view.findViewById(R.id.newsTitleView);
-            newsAuthor = (TextView) view.findViewById(R.id.newsAuthorView);
+            newsSection = (TextView) view.findViewById(R.id.newsSectionView);
+            newsPublishedDate = (TextView) view.findViewById(R.id.newsPublishedDate);
         }
     }
 
@@ -49,9 +52,11 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.MyViewHolder> 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         News news = newsList.get(position);
+        holder.newsImage.setImageBitmap(news.getNewsImage());
         holder.newsTitle.setText(news.getNewsTitle());
-        holder.newsAuthor.setText(news.getNewsAuthor());
-        //holder.newsUrl.setText(news.getNewsUrl());
+        holder.newsSection.setText(news.getNewsSection());
+        holder.newsPublishedDate.setText(news.getNewsPublishedDate());
+        holder.newsUrl.parse(news.getNewsUrl());
     }
 
     @Override

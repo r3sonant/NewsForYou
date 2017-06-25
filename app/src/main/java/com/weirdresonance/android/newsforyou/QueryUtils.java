@@ -20,16 +20,27 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.attr.thumbnail;
+
 /**
  * Created by Stephen.Pierce on 22/06/2017.
  */
 
 public final class QueryUtils {
 
-    static Bitmap thumbnailImage;
-    static String title;
-    static String author;
+    private static final int READ_TIMEOUT = 10000;
+    private static final int CONNECT_TIMEOUT = 10000;
+    private static final int RESPONSE_CODE_200 = 200;
+    static Bitmap newsImage;
+    static String newsTitle;
+    static String newsSection;
+    static String newsPublishedDate;
     static String newsUrl;
+
+    static JSONObject jsonObject;
+    static JSONObject response;
+    static JSONArray newsItemArray;
+    static JSONObject fields;
     /**
      * Log messages tag
      */
@@ -103,16 +114,16 @@ public final class QueryUtils {
             httpUrlConnection = (HttpURLConnection) url.openConnection();
 
             // Set setReadTimeout in milliseconds.
-            httpUrlConnection.setReadTimeout(10000);
+            httpUrlConnection.setReadTimeout(READ_TIMEOUT);
 
             // Set setConnectTimeout in milliseconds.
-            httpUrlConnection.setConnectTimeout(15000);
+            httpUrlConnection.setConnectTimeout(CONNECT_TIMEOUT);
             httpUrlConnection.setRequestMethod("GET");
             httpUrlConnection.connect();
 
             // If the response was successfully with a response code of 200
             // then read the input stream and parse the response.
-            if (httpUrlConnection.getResponseCode() == 200) {
+            if (httpUrlConnection.getResponseCode() == RESPONSE_CODE_200) {
                 inputStream = httpUrlConnection.getInputStream();
                 jsonResponse = readFromStream(inputStream);
             } else {
@@ -160,13 +171,21 @@ public final class QueryUtils {
         // Try and parse the JSON response string and catch and handle if a JSONException exception is thrown
         try {
             // Create an JSONObject from the bookJson response string
-            JSONObject jsonObject = new JSONObject(newsJson);
+            jsonObject = new JSONObject(newsJson);
 
             // Extract the JSONArray associated with the key called "items",
             // which represents a list of items relating to the book.
 
-            JSONObject response = jsonObject.getJSONObject("response");
-            JSONArray newsItemArray = response.getJSONArray("results");
+            if (jsonObject.has("response")) {
+                response = jsonObject.getJSONObject("response");
+            }
+
+            if (response.has("results")) {
+                newsItemArray = response.getJSONArray("results");
+            }
+
+
+
 
             // For each book in the bookArray create a Book object
             for (int i = 0; i < newsItemArray.length(); i++) {
@@ -174,54 +193,64 @@ public final class QueryUtils {
                 // Get the book at position i.
                 JSONObject currentNewsItem = newsItemArray.getJSONObject(i);
 
-
+                if (currentNewsItem.has("fields")) {
+                    fields = currentNewsItem.getJSONObject("fields");
+                }
 
                 // Extract the JSONObject associated with the key volumeInfo
                 //JSONObject volumeInfo = currentNewsItem.getJSONObject("results");
 
-                // Check to see if volumeInfo contains the key "title".
+                // Check to see if the response contains the key "newsTitle".
                 if(currentNewsItem.has("webTitle")) {
-                    // Extract the value for the title key
-                    title = currentNewsItem.getString("webTitle");
+                    // Extract the value for the newsTitle key
+                    newsTitle = currentNewsItem.getString("webTitle");
                 }
 
-/*                // Check to see if volumeInfo contains the key "author".
-                if(volumeInfo.has("author")) {
+                // Check to see if response contains the key "sectionName".
+                if(currentNewsItem.has("sectionName")) {
                     // Extract the value for the author key
-                    author = "Author: " + volumeInfo.getString("author");
+                    newsSection = currentNewsItem.getString("sectionName");
 
                     // Trim the author string and remove [, ] and ".
-                    author = author.replaceAll("[\\[\\]\"]", "");
-                    author = author.replaceAll(",", ", ");
-                }*/
+/*                    author = author.replaceAll("[\\[\\]\"]", "");
+                    author = author.replaceAll(",", ", ");*/
+                }
 
-/*                // Check to see if volumeInfo contains the key "infoLink".
-                if(volumeInfo.has("infoLink")) {
+                // Check to see if the response contains the key "webPublicationDate".
+                if(currentNewsItem.has("webPublicationDate")) {
                     // Extract the URL for the selected book key
-                    newsUrl = volumeInfo.getString("infoLink");
-                }*/
+                    newsPublishedDate = currentNewsItem.getString("webPublicationDate");
+                }
 
-/*                // Check to see if volumeInfo contains the key "imageLinks"
-                if(volumeInfo.has("imageLinks")) {
+                // Check to see if the response contains the key "webUrl".
+                if(currentNewsItem.has("webUrl")) {
+                    // Extract the URL for the selected book key
+                    newsUrl = currentNewsItem.getString("webUrl");
+                }
+
+
+                // Check to see if volumeInfo contains the key "thumbnail"
+                if(fields.has("thumbnail")) {
+
                     // Extract the JSONObject associate with the key imageLinks
-                    JSONObject imageLinks = volumeInfo.getJSONObject("imageLinks");
+                    String thumbnail = fields.getString("thumbnail");
 
                     // Extract the JSONObject associated with the key thumbnail
-                    String thumbnailURL = imageLinks.getString("smallThumbnail");
+                    //String thumbnailURL = thumbnail.getString("thumbnail");
 
                     // Try and download the small thumbnail image
                     try {
-                        InputStream in = new java.net.URL(thumbnailURL).openStream();
-                        thumbnailImage = BitmapFactory.decodeStream(in);
+                        InputStream in = new java.net.URL(thumbnail).openStream();
+                        newsImage = BitmapFactory.decodeStream(in);
                     } catch (Exception e) {
                         Log.e("Error", e.getMessage());
                         e.printStackTrace();
                     }
-                }*/
+                }
 
-                // Create a new News object with the author and title of the book
-                //News news = new News(thumbnailImage, title, author, newsUrl);
-                News news = new News(title, "Animation, Kids & Family", "2015");
+                // Create a new News object with the author and newsTitle of the book
+                //News news = new News(newsImage, newsTitle, author, newsUrl);
+                News news = new News(newsImage, newsTitle, newsSection, newsPublishedDate, newsUrl);
 
                 // Add the book to the list of books
                 newsList.add(news);

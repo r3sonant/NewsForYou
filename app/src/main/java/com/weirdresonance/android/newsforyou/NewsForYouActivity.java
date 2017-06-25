@@ -2,23 +2,28 @@ package com.weirdresonance.android.newsforyou;
 
 import android.app.LoaderManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.R.attr.key;
 
 public class NewsForYouActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<News>>{
 
@@ -28,23 +33,18 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
      * Test URL for Google Books API data
      */
     private static final String NEWS_REQUEST_URL =
-            "http://content.guardianapis.com/search?q=debates&api-key=test";
+            "https://content.guardianapis.com";
+            //"https://content.guardianapis.com/search?&api-key=test&show-fields=thumbnail";
+            //"https://content.guardianapis.com/search?q=politics&api-key=test&show-fields=thumbnail";
+            //"http://content.guardianapis.com/search?q=politics&api-key=test";
+            //"http://content.guardianapis.com/search?q=debates&api-key=test";
             //"https://www.googleapis.com/books/v1/volumes?q=";
 
-    /**
-     * Search entry from search box
-     */
-    private String searchString = null;
-
+    private static final String NEWS_REQUEST_URL_END = "api-key=test&show-fields=thumbnail";
     /**
      * TextView that is displayed when the list doesn't contain any books.
      */
     private TextView emptyNewsListView;
-
-    /**
-     * Adapter for the list of books.
-     */
-    //private NewsAdapter newsAdapter;
 
     /**
      * ListView that will contain the list of books.
@@ -66,74 +66,9 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news_for_you);
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
-
-
-
-
-
-
-
-        //prepareNewsData();
 
         callLoader(NEWS_REQUEST_URL);
     }
-
-   /* private void prepareNewsData() {
-        News news = new News("Inside Out", "Animation, Kids & Family", "2015");
-        newsList.add(news);
-
-        news = new News("Star Wars: Episode VII - The Force Awakens", "Action", "2015");
-        newsList.add(news);
-
-        news = new News("Shaun the Sheep", "Animation", "2015");
-        newsList.add(news);
-
-        news = new News("The Martian", "Science Fiction & Fantasy", "2015");
-        newsList.add(news);
-
-        news = new News("Mission: Impossible Rogue Nation", "Action", "2015");
-        newsList.add(news);
-
-        news = new News("Up", "Animation", "2009");
-        newsList.add(news);
-
-        news = new News("Star Trek", "Science Fiction", "2009");
-        newsList.add(news);
-
-        news = new News("The LEGO Movie", "Animation", "2014");
-        newsList.add(news);
-
-        news = new News("Iron Man", "Action & Adventure", "2008");
-        newsList.add(news);
-
-        news = new News("Aliens", "Science Fiction", "1986");
-        newsList.add(news);
-
-        news = new News("Chicken Run", "Animation", "2000");
-        newsList.add(news);
-
-        news = new News("Back to the Future", "Science Fiction", "1985");
-        newsList.add(news);
-
-        news = new News("Raiders of the Lost Ark", "Action & Adventure", "1981");
-        newsList.add(news);
-
-        news = new News("Goldfinger", "Action & Adventure", "1965");
-        newsList.add(news);
-
-        news = new News("Guardians of the Galaxy", "Science Fiction & Fantasy", "2014");
-        newsList.add(news);
-
-
-        newsAdapter.notifyDataSetChanged();
-
-    }*/
-
-
-
-
 
 
     /**
@@ -150,10 +85,30 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(newsAdapter);
 
 
+        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                News news = newsList.get(position);
 
+                // Convert the String URL into a URI object (to pass into the Intent constructor)
+                Uri newsUri = Uri.parse(news.getNewsUrl());
+
+                // Create a new intent to view the news URI
+                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, newsUri);
+
+                // Send the intent to launch a new activity
+                startActivity(websiteIntent);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+
+            }
+        }));
 
 
 
@@ -238,7 +193,30 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
         // Call FormatURL() and pass in the searchString entered in the searchbox.
         // This will add the base url and max results and pass it to the loader.
         //String searchUrl = FormatURL(searchString);
-        return new NewsLoader(this, NEWS_REQUEST_URL);
+
+
+
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String newsSection = sharedPrefs.getString(
+                getString(R.string.settings_news_section_key),
+                getString(R.string.settings_news_section_default)
+        );
+
+        Uri baseUri = Uri.parse(NEWS_REQUEST_URL);
+        Uri.Builder uriBuilder = baseUri.buildUpon();
+
+/*        uriBuilder.appendQueryParameter("format", "geojson");
+        uriBuilder.appendQueryParameter("limit", "10");*/
+
+        //https://content.guardianapis.com/search?q=politics&api-key=test&show-fields=thumbnail
+        uriBuilder.appendPath("search");
+        uriBuilder.appendQueryParameter("q", newsSection);
+        uriBuilder.appendQueryParameter("api-key", "test");
+        uriBuilder.appendQueryParameter("show-fields", "thumbnail");
+
+        return new NewsLoader(this, uriBuilder.toString());
+
     }
 
 
@@ -254,21 +232,11 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
         //emptyNewsListView.setText(R.string.noNewsFound);
 
         // Clear the adapter of previous earthquake data
-/*        newsAdapter.clear();
+        //newsAdapter.clear();
 
-        // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
-        // data set. This will trigger the ListView to update.
-        if (news != null && !books.isEmpty()) {
-            newsAdapter.addAll(books);
-        }*/
-        //prepareNewsData();
         if (newsList != null && !newsList.isEmpty()) {
 
-            //TODO Log output of getItemCount
-            float i = newsAdapter.getItemCount();
-            Log.d("Item Count", "Value: " + Float.toString(i));
-
-
+            this.newsList.addAll(newsList);
             newsAdapter.notifyDataSetChanged();
         }
     }
@@ -279,13 +247,13 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
         //newsAdapter.clear();
     }
 
-/*    @Override
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }*/
+    }
 
-/*    @Override
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
@@ -294,7 +262,7 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }*/
+    }
 
 
 }
