@@ -30,8 +30,7 @@
     <!-- Label for order-by most recent option [CHAR LIMIT=20] -->
     <string name="settings_news_section_music_label">Music</string>
     <string name="settings_news_section_music_value" translatable="false">music</string>
-
-
+    <string name="no_news_here">There is no news, You must have gone back in time to 18 April 1930 and be listening to the BBC on the wireless.</string>
 
 
 </resources>

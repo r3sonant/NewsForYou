@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_news_for_you"
-    tools:context=".NewsForYouActivity">
+    tools:context=".NewsForYouActivity"
+    tools:showIn="@layout/activity_news_for_you">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="vertical" />
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical" />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
 
     <!-- Empty view is only visible when the list has no items. -->
     <TextView
@@ -39,63 +48,3 @@
         android:visibility="gone" />
 
 </RelativeLayout>
-
-
-
-    <!--
-    <?xml version="1.0" encoding="utf-8"?>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/searchBackground"
-    android:orientation="vertical"
-    tools:context="com.weirdresonance.android.newsforyou.NewsForYouActivity">
-
-
-
-
-
-
-
-    &lt;!&ndash; ListView that will hold the list of books retrieved from Google Books API &ndash;&gt;
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="8dp"
-        android:background="#FFF"
-        android:divider="@null"
-        android:dividerHeight="0dp"
-        android:paddingTop="16dp" />
-
-
-    &lt;!&ndash; Empty view is only visible when the list has no items. &ndash;&gt;
-    <TextView
-        android:id="@+id/empty_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginTop="16dp"
-        android:textAppearance="?android:textAppearanceMedium"
-        android:textColor="@color/secondary_text"
-        android:visibility="gone" />
-
-    &lt;!&ndash; Spinning progress indicator shown when books are loading &ndash;&gt;
-    <ProgressBar
-        android:id="@+id/loading_indicator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_gravity="center"
-        android:layout_marginTop="32dp"
-        android:visibility="gone" />
-
-
-    </LinearLayout>
-
-
-    -->

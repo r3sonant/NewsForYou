@@ -9,23 +9,26 @@ import android.net.NetworkInfo;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.R.attr.key;
 
-public class NewsForYouActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<News>>{
+public class NewsForYouActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<News>> {
 
     private static final String LOG_TAG = NewsForYouActivity.class.getName();
 
@@ -34,24 +37,16 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
      */
     private static final String NEWS_REQUEST_URL =
             "https://content.guardianapis.com";
-            //"https://content.guardianapis.com/search?&api-key=test&show-fields=thumbnail";
-            //"https://content.guardianapis.com/search?q=politics&api-key=test&show-fields=thumbnail";
-            //"http://content.guardianapis.com/search?q=politics&api-key=test";
-            //"http://content.guardianapis.com/search?q=debates&api-key=test";
-            //"https://www.googleapis.com/books/v1/volumes?q=";
+    //"https://content.guardianapis.com/search?&api-key=test&show-fields=thumbnail";
+    //"https://content.guardianapis.com/search?q=politics&api-key=test&show-fields=thumbnail";
+    //"http://content.guardianapis.com/search?q=politics&api-key=test";
+    //"http://content.guardianapis.com/search?q=debates&api-key=test";
+    //"https://www.googleapis.com/books/v1/volumes?q=";
 
-    private static final String NEWS_REQUEST_URL_END = "api-key=test&show-fields=thumbnail";
     /**
      * TextView that is displayed when the list doesn't contain any books.
      */
-    private TextView emptyNewsListView;
-
-    /**
-     * ListView that will contain the list of books.
-     */
-    private ListView newsListView;
-
-
+    public TextView emptyNewsListView;
 
     /**
      * Constant for the book loader ID.
@@ -59,6 +54,8 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
     private static final int NEWS_LOADER_ID = 1;
 
     public static List<News> newsList = new ArrayList<>();
+    private SwipeRefreshLayout swipeContainer;
+
     private RecyclerView recyclerView;
     private NewsAdapter newsAdapter;
 
@@ -67,8 +64,24 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news_for_you);
 
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        // Setup refresh listener which triggers new data loading
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+                callLoader(NEWS_REQUEST_URL);
+                swipeContainer.setRefreshing(false);
+            }
+        });
+
         callLoader(NEWS_REQUEST_URL);
     }
+
+
+
 
 
     /**
@@ -80,12 +93,11 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
 
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-
         newsAdapter = new NewsAdapter(newsList);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this));
         recyclerView.setAdapter(newsAdapter);
 
 
@@ -109,8 +121,6 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
 
             }
         }));
-
-
 
 
         // Restart the loader to clear it if a search has already been carried out
@@ -195,7 +205,6 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
         //String searchUrl = FormatURL(searchString);
 
 
-
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         String newsSection = sharedPrefs.getString(
@@ -205,11 +214,6 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
 
         Uri baseUri = Uri.parse(NEWS_REQUEST_URL);
         Uri.Builder uriBuilder = baseUri.buildUpon();
-
-/*        uriBuilder.appendQueryParameter("format", "geojson");
-        uriBuilder.appendQueryParameter("limit", "10");*/
-
-        //https://content.guardianapis.com/search?q=politics&api-key=test&show-fields=thumbnail
         uriBuilder.appendPath("search");
         uriBuilder.appendQueryParameter("q", newsSection);
         uriBuilder.appendQueryParameter("api-key", "test");
@@ -220,7 +224,6 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
     }
 
 
-
     @Override
     public void onLoadFinished(Loader<List<News>> NewsLoader, List<News> newsList) {
 
@@ -228,23 +231,26 @@ public class NewsForYouActivity extends AppCompatActivity implements LoaderManag
         View loadingIndicator = findViewById(R.id.loading_indicator);
         loadingIndicator.setVisibility(View.GONE);
 
-        // Set empty state text to display "No news found."
-        //emptyNewsListView.setText(R.string.noNewsFound);
 
-        // Clear the adapter of previous earthquake data
-        //newsAdapter.clear();
+
+
+        // Clear the adapter of previous data
+        this.newsList.clear();
 
         if (newsList != null && !newsList.isEmpty()) {
 
             this.newsList.addAll(newsList);
             newsAdapter.notifyDataSetChanged();
+        } else {
+            // Set empty state text to display "No news found."
+            emptyNewsListView.setText(R.string.no_news_here);
         }
     }
 
     @Override
     public void onLoaderReset(Loader<List<News>> loader) {
         // Loader reset, so we can clear out our existing data.
-        //newsAdapter.clear();
+        this.newsList.clear();
     }
 
     @Override
